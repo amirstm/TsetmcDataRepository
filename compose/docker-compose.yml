@@ -1,5 +1,6 @@
 version: '3'
 name: tse_repo
+
 services:
   mysql-master:
     image: percona:ps-8.0
@@ -11,30 +12,15 @@ services:
       - all
     volumes:
       - master-data:/var/lib/mysql
+      - master-data-cnf:/etc/my.cnf
     networks:
       backend:
         aliases:
           - mysql
-          - mysql-master
-
-  mysql-slave:
-    image: percona:ps-8.0
-    container_name: mysql-slave
-    restart: unless-stopped
-    env_file: ./slave/.env.slave
-    cap_add:
-      - all
-    volumes:
-      - slave-data:/var/lib/mysql
-    networks:
-      backend:
-        aliases:
-          - mysql
-          - mysql-slave
 
 volumes:
   master-data:
-  slave-data:
+  master-data-cnf:
 
 networks:
   backend:
