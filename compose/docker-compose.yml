@@ -19,6 +19,25 @@ services:
         aliases:
           - mysql
 
+  mysql-backup:
+    image: fradelg/mysql-cron-backup:1.13.1
+    container_name: mysql-backup
+    depends_on:
+      - mysql-master
+    restart: unless-stopped
+    volumes:
+      - ./backup:/backup
+    env_file: 
+      - ./master/.env.master
+    environment:
+      - CRON_TIME=0 0 * * *
+      - MYSQL_HOST=mysql-master
+      - MYSQL_PORT=3306
+      - TIMEOUT=10s
+      - INIT_BACKUP=1
+    networks:
+      backend:
+
 volumes:
   master-data:
   master-data-cnf:
