@@ -1,19 +1,34 @@
 version: '3'
 name: tse_repo
 
+secrets:
+  mysql_root_password:
+    file: ./secrets/mysql_root_password
+  mysql_user:
+    file: ./secrets/mysql_user
+  mysql_password:
+    file: ./secrets/mysql_password
+    
 services:
   mysql-master:
     image: mysql:8.0.34
     container_name: mysql-master
     restart: unless-stopped
-    env_file: 
-      - ./master/.env.master
     ports:
       - "3306:3306"
     volumes:
       - master-data:/var/lib/mysql
       - master-data-cnf:/etc/mysql/conf.d
       - ./master/setup.sql:/docker-entrypoint-initdb.d/setup.sql
+    env_file: 
+      - ./master/.env.mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
+      - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
+    secrets:
+      - mysql_root_password
+      - mysql_user
+      - mysql_password
     networks:
       backend:
         aliases:
@@ -26,15 +41,19 @@ services:
       - mysql-master
     restart: unless-stopped
     volumes:
-      - ./backup:/backup
+      - ${BACKUPS_FOLDER}:/backup
     env_file: 
-      - ./master/.env.master
+      - ./master/.env.mysql
     environment:
+      - MYSQL_PASS_FILE=/run/secrets/mysql_password
       - CRON_TIME=0 0 * * *
       - MYSQL_HOST=mysql-master
       - MYSQL_PORT=3306
       - TIMEOUT=10s
       - INIT_BACKUP=1
+    secrets:
+      - mysql_user
+      - mysql_password
     networks:
       backend:
 
