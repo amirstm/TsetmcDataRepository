@@ -3,16 +3,17 @@ name: tse_repo
 
 services:
   mysql-master:
-    image: percona:ps-8.0
+    image: mysql:8.0.34
     container_name: mysql-master
     restart: unless-stopped
     env_file: 
       - ./master/.env.master
-    cap_add:
-      - all
+    ports:
+      - "3306:3306"
     volumes:
       - master-data:/var/lib/mysql
-      - master-data-cnf:/etc/my.cnf
+      - master-data-cnf:/etc/mysql/conf.d
+      - ./master/setup.sql:/docker-entrypoint-initdb.d/setup.sql
     networks:
       backend:
         aliases:
@@ -24,4 +25,4 @@ volumes:
 
 networks:
   backend:
-    internal: true
+    internal: false # change this to true later for deployment
