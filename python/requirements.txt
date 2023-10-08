@@ -1,2 +1,0 @@
-telegram-task
-tse-utils

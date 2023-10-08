@@ -1,7 +1,8 @@
 """Starting point for the execution of the project"""
 import os
 import logging
-from datetime import datetime, time, timedelta
+import asyncio
+from datetime import datetime, timedelta
 from logging.handlers import TimedRotatingFileHandler
 from dotenv import load_dotenv
 import telegram.ext
@@ -10,21 +11,17 @@ from telegram_task.line import (
     LineManager,
     CronJobOrder,
 )
-from telegram_task.samples import (
-    SleepyWorker,
-    CalculatorJobDescription,
-    CalculatorWorker,
-    MathematicalOperation
-)
+from lines.tse_client_instruments_updater import TseClientInstrumentsUpdater
 
 load_dotenv()
 
 PROXY_URL = os.getenv('PROXY_URL')
+PROXY_URL = PROXY_URL if PROXY_URL else None
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 
-def main():
+async def main():
     """Manually testing the enterprise"""
     logger = logging.getLogger("telegram_task")
     formatter = logging.Formatter(
@@ -58,37 +55,21 @@ def main():
             telegram_admin_id=TELEGRAM_CHAT_ID
         )
     )
-    line_manager_1 = LineManager(
-        worker=SleepyWorker(),
-        cron_job_orders=[
-            CronJobOrder((datetime.now() + timedelta(seconds=600)).time())
-        ]
-    )
-    line_manager_2 = LineManager(
-        worker=CalculatorWorker(),
-        cron_job_orders=[
-            CronJobOrder(
-                daily_run_time=(
-                    datetime.now() + timedelta(seconds=1200)
-                ).time(),
-                job_description=CalculatorJobDescription(
-                    input1=2,
-                    input2=3,
-                    operation=MathematicalOperation.POW
+    president.add_line(
+        LineManager(
+            worker=TseClientInstrumentsUpdater(),
+            cron_job_orders=[
+                CronJobOrder(
+                    daily_run_time=(
+                        datetime.now() + timedelta(seconds=30)
+                    ).time(),
+                    job_description=TseClientInstrumentsUpdater.default_job_description()
                 )
-            ),
-            CronJobOrder(
-                daily_run_time=time(hour=23, minute=59, second=57),
-                job_description=CalculatorJobDescription(
-                    input1=2,
-                    input2=3,
-                    operation=MathematicalOperation.MUL
-                )
-            )]
+            ]
+        )
     )
-    president.add_line(line_manager_1, line_manager_2)
-    president.start_operation()
+    await president.start_operation_async()
 
 
 if __name__ == '__main__':
-    main()
+    asyncio.new_event_loop().run_until_complete(main())
