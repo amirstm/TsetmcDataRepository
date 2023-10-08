@@ -4,8 +4,6 @@ name: tse_repo
 secrets:
   mysql_root_password:
     file: ./secrets/mysql_root_password
-  mysql_user:
-    file: ./secrets/mysql_user
   mysql_password:
     file: ./secrets/mysql_password
     
@@ -27,10 +25,9 @@ services:
       - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
     secrets:
       - mysql_root_password
-      - mysql_user
       - mysql_password
     networks:
-      backend:
+      db_network:
         aliases:
           - mysql
 
@@ -52,15 +49,32 @@ services:
       - TIMEOUT=10s
       - INIT_BACKUP=1
     secrets:
-      - mysql_user
       - mysql_password
     networks:
-      backend:
+      db_network:
+
+  sshproxy:
+    image: amirstm/sshproxy_main:latest
+    container_name: sshproxy
+    restart: unless-stopped
+    ports:
+      - "${PROXY_PORT}:${PROXY_PORT}"
+    volumes:
+      - sshproxy_config:/python/config
+    networks:
+      app_network:
+        aliases:
+          - sshproxy
+
 
 volumes:
   master-data:
   master-data-cnf:
+  sshproxy_config:
 
 networks:
-  backend:
+  db_network:
     internal: false # change this to true later for deployment
+  app_network:
+    internal: false
+  
