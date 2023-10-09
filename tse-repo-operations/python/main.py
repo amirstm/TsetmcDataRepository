@@ -61,7 +61,7 @@ async def main():
             cron_job_orders=[
                 CronJobOrder(
                     daily_run_time=(
-                        datetime.now() + timedelta(seconds=30)
+                        datetime.now() + timedelta(seconds=3)
                     ).time(),
                     job_description=TseClientInstrumentsUpdater.default_job_description()
                 )
