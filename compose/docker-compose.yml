@@ -53,6 +53,8 @@ services:
     networks:
       db_network:
 
+  # Before running this docker compose you should build the needed volume for sshproxy
+  # docker container run --name ssha --rm -it -v tse_repo_sshproxy_config:/python/config  amirstm/sshproxy_admin
   sshproxy:
     image: amirstm/sshproxy_main:latest
     container_name: sshproxy
