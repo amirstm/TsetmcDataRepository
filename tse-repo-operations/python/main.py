@@ -19,6 +19,10 @@ PROXY_URL = os.getenv('PROXY_URL')
 PROXY_URL = PROXY_URL if PROXY_URL else None
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+MYSQL_DB = os.getenv("MYSQL_DB")
+MYSQL_USER = os.getenv("MYSQL_USER")
+MYSQL_PORT = os.getenv("MYSQL_PORT")
+MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
 
 
 async def main():

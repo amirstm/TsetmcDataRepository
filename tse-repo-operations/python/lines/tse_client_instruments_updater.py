@@ -24,10 +24,10 @@ class TseClientInstrumentsUpdater(line.Worker):
 
     async def perform_task(self, job_description: JobDescription) -> line.JobReport:
         """Performs the task using the provided job description"""
-        global_instruments = await self.__get_global_instruments_from_tse_client(
+        instruments, indices = await self.__get_global_instruments_from_tse_client(
             job_description=job_description
         )
-        self.update_database(global_instruments)
+        self.__update_database(instruments, indices)
         return line.JobReport(
             information=[
                 f"Result ➡️ {job_description.min_acceptable_last_change_date}"
@@ -45,9 +45,19 @@ class TseClientInstrumentsUpdater(line.Worker):
             )
         )
 
+    async def __update_database(
+            self,
+            instruments: list[TseClientInstrumentIdentitification],
+            indices: list[TseClientInstrumentIdentitification]
+    ):
+        """Updates the database with the instruments and the indices"""
+
     async def __get_global_instruments_from_tse_client(
             self, job_description: JobDescription
-    ) -> list[TseClientInstrumentIdentitification]:
+    ) -> tuple[
+        list[TseClientInstrumentIdentitification],
+        list[TseClientInstrumentIdentitification]
+    ]:
         """Get instruments from TSE client"""
         self._LOGGER.info("Fetching global instruments.")
         async with TseClientScraper() as tse_client:
@@ -63,16 +73,11 @@ class TseClientInstrumentsUpdater(line.Worker):
             identifications=instruments,
             job_description=job_description
         )
-        indices_ok, _ = self.__filter_by_last_change_date(
-            identifications=indices,
-            job_description=job_description
-        )
         self._LOGGER.info(
-            "Filtered instruments count: [%d], Total indices count: [%d]",
+            "Filtered instruments count: [%d]",
             len(instruments_ok),
-            len(indices_ok)
         )
-        return instruments_ok, indices_ok
+        return instruments_ok, indices
 
     @classmethod
     def __pre_process_identifications(
@@ -84,13 +89,19 @@ class TseClientInstrumentsUpdater(line.Worker):
             identification.ticker = arabic_to_persian(
                 identification.ticker
             )
+            identification.name_persian = arabic_to_persian(
+                identification.name_persian
+            )
 
     @classmethod
     def __filter_by_last_change_date(
         cls,
         identifications: list[TseClientInstrumentIdentitification],
         job_description: JobDescription
-    ) -> list[TseClientInstrumentIdentitification]:
+    ) -> tuple[
+        list[TseClientInstrumentIdentitification],
+        list[TseClientInstrumentIdentitification]
+    ]:
         """Filter instruments list by last change date"""
         condition: Callable[
             [TseClientInstrumentIdentitification],
