@@ -1,9 +1,9 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from sqlalchemy import ForeignKey
-from typing import List
 from sqlalchemy.orm import relationship
 from typing import Optional
-from sqlalchemy import String
+from sqlalchemy.types import NCHAR, NVARCHAR
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import declarative_base
@@ -41,13 +41,64 @@ engine = create_engine(
 
 
 @dataclass
+class IndustrySector(Base):
+    __tablename__ = "industry_sector"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(NVARCHAR(64))
+
+    industry_sub_sectors: Mapped[list[IndustrySubSector]] = relationship(
+        back_populates="industry_sector", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"IndustrySector(id={self.id}, title={self.title})"
+
+
+@dataclass
+class IndustrySubSector(Base):
+    __tablename__ = "industry_sub_sector"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(NVARCHAR(64))
+    industry_sector_id: Mapped[int] = mapped_column(
+        ForeignKey("industry_sector.id")
+    )
+
+    industry_sector: Mapped[IndustrySector] = relationship(
+    )
+    instrument_identifications: Mapped[list[InstrumentIdentification]] = relationship(
+        back_populates="industry_sub_sector", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"IndustrySubSector(id={self.id}, title={self.title}, \
+industry_sector={self.industry_sector})"
+
+
+@dataclass
+class ExchangeMarket(Base):
+    __tablename__ = "exchange_market"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(NVARCHAR(64))
+
+    instrument_identifications: Mapped[list[InstrumentIdentification]] = relationship(
+        back_populates="exchange_market", cascade="all, delete-orphan"
+    )
+
+    def __repr__(self) -> str:
+        return f"ExchangeMarket(id={self.id}, title={self.title})"
+
+
+@dataclass
 class InstrumentType(Base):
     __tablename__ = "instrument_type"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    title: Mapped[str] = mapped_column(String(32))
+    title: Mapped[str] = mapped_column(NVARCHAR(128))
 
-    instrument_identifications: Mapped[list["InstrumentIdentification"]] = relationship(
+    instrument_identifications: Mapped[list[InstrumentIdentification]] = relationship(
         back_populates="instrument_type", cascade="all, delete-orphan"
     )
 
@@ -59,16 +110,37 @@ class InstrumentType(Base):
 class InstrumentIdentification(Base):
     __tablename__ = "instrument_identification"
 
-    isin: Mapped[str] = mapped_column(String(length=12), primary_key=True)
-    tsetmc_code: Mapped[str] = mapped_column(String(32))
-    ticker: Mapped[str] = mapped_column(String(32))
-
+    isin: Mapped[str] = mapped_column(NCHAR(12), primary_key=True)
+    tsetmc_code: Mapped[str] = mapped_column(NVARCHAR(32))
+    ticker: Mapped[str] = mapped_column(NVARCHAR(32))
+    persian_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
+    english_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
     instrument_type_id: Mapped[int] = mapped_column(
         ForeignKey("instrument_type.id")
+    )
+    industry_sub_sector_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("industry_sub_sector.id")
+    )
+    exchange_market_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("exchange_market.id")
     )
 
     instrument_type: Mapped[InstrumentType] = relationship(
     )
+    industry_sub_sector: Mapped[IndustrySubSector] = relationship(
+    )
+    exchange_market: Mapped[ExchangeMarket] = relationship(
+    )
+
+
+@dataclass
+class IndexIdentification(Base):
+    __tablename__ = "index_identification"
+
+    isin: Mapped[str] = mapped_column(NCHAR(12), primary_key=True)
+    tsetmc_code: Mapped[str] = mapped_column(NVARCHAR(32))
+    persian_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
+    english_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
 
 
 def loadSession():
