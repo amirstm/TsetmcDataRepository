@@ -44,7 +44,7 @@ engine = create_engine(
 class IndustrySector(Base):
     __tablename__ = "industry_sector"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    industry_sector_id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(NVARCHAR(64))
 
     industry_sub_sectors: Mapped[list[IndustrySubSector]] = relationship(
@@ -52,17 +52,17 @@ class IndustrySector(Base):
     )
 
     def __repr__(self) -> str:
-        return f"IndustrySector(id={self.id}, title={self.title})"
+        return f"IndustrySector(id={self.industry_sector_id}, title={self.title})"
 
 
 @dataclass
 class IndustrySubSector(Base):
     __tablename__ = "industry_sub_sector"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    industry_sub_sector_id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(NVARCHAR(64))
     industry_sector_id: Mapped[int] = mapped_column(
-        ForeignKey("industry_sector.id")
+        ForeignKey("industry_sector.industry_sector_id")
     )
 
     industry_sector: Mapped[IndustrySector] = relationship(
@@ -72,15 +72,15 @@ class IndustrySubSector(Base):
     )
 
     def __repr__(self) -> str:
-        return f"IndustrySubSector(id={self.id}, title={self.title}, \
-industry_sector={self.industry_sector})"
+        return f"IndustrySubSector(id={self.industry_sub_sector_id}, \
+title={self.title}, industry_sector={self.industry_sector})"
 
 
 @dataclass
 class ExchangeMarket(Base):
     __tablename__ = "exchange_market"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    exchange_market_id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(NVARCHAR(64))
 
     instrument_identifications: Mapped[list[InstrumentIdentification]] = relationship(
@@ -88,14 +88,14 @@ class ExchangeMarket(Base):
     )
 
     def __repr__(self) -> str:
-        return f"ExchangeMarket(id={self.id}, title={self.title})"
+        return f"ExchangeMarket(id={self.exchange_market_id}, title={self.title})"
 
 
 @dataclass
 class InstrumentType(Base):
     __tablename__ = "instrument_type"
 
-    id: Mapped[int] = mapped_column(primary_key=True)
+    instrument_type_id: Mapped[int] = mapped_column(primary_key=True)
     title: Mapped[str] = mapped_column(NVARCHAR(128))
 
     instrument_identifications: Mapped[list[InstrumentIdentification]] = relationship(
@@ -103,7 +103,7 @@ class InstrumentType(Base):
     )
 
     def __repr__(self) -> str:
-        return f"InstrumentType(id={self.id}, title={self.title})"
+        return f"InstrumentType(id={self.instrument_type_id}, title={self.title})"
 
 
 @dataclass
@@ -116,13 +116,13 @@ class InstrumentIdentification(Base):
     persian_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
     english_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
     instrument_type_id: Mapped[int] = mapped_column(
-        ForeignKey("instrument_type.id")
+        ForeignKey("instrument_type.instrument_type_id")
     )
     industry_sub_sector_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("industry_sub_sector.id")
+        ForeignKey("industry_sub_sector.industry_sub_sector_id")
     )
     exchange_market_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("exchange_market.id")
+        ForeignKey("exchange_market.exchange_market_id")
     )
 
     instrument_type: Mapped[InstrumentType] = relationship(
@@ -143,6 +143,16 @@ class IndexIdentification(Base):
     english_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
 
 
+# @dataclass
+# class DailyTradeCandle(Base):
+#     __tablename__ = "index_identification"
+
+#     isin: Mapped[str] = mapped_column(NCHAR(12), primary_key=True)
+#     tsetmc_code: Mapped[str] = mapped_column(NVARCHAR(32))
+#     persian_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
+#     english_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
+
+
 def loadSession():
     """"""
 
@@ -158,5 +168,5 @@ if __name__ == "__main__":
     # res = session.query(InstrumentIdentification).all()
     # print(res[0])
     res = session.query(InstrumentType).where(
-        InstrumentType.id == 12345).first()
+        InstrumentType.instrument_type_id == 12345).first()
     print(res.instrument_identifications)
