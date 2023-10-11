@@ -29,15 +29,21 @@ class TseClientInstrumentsUpdater(line.Worker):
 
     async def perform_task(self, job_description: JobDescription) -> line.JobReport:
         """Performs the task using the provided job description"""
-        instruments, indices = await self.__get_global_instruments_from_tse_client(
-            job_description=job_description
-        )
-        self.__update_database(instruments, indices)
-        return line.JobReport(
+        report = line.JobReport(
             information=[
                 f"Result ➡️ {job_description.min_acceptable_last_change_date}"
             ]
         )
+        instruments, indices = await self.__get_global_instruments_from_tse_client(
+            job_description=job_description,
+            report=report
+        )
+        await self.__update_database(
+            instruments=instruments,
+            indices=indices,
+            report=report
+        )
+        return report
 
     @classmethod
     def default_job_description(cls) -> JobDescription:
@@ -53,15 +59,79 @@ class TseClientInstrumentsUpdater(line.Worker):
     async def __update_database(
             self,
             instruments: list[TseClientInstrumentIdentitification],
-            indices: list[TseClientInstrumentIdentitification]
+            indices: list[TseClientInstrumentIdentitification],
+            report: line.JobReport
     ):
         """Updates the database with the instruments and the indices"""
         with get_tse_market_session() as session:
             instrument_types = session.query(InstrumentType).all()
-            print(instrument_types)
+            instruments_known_type = self.__filter_identifications_by_type(
+                instruments,
+                instrument_types,
+                report
+            )
+            old_instruments = session.query(InstrumentIdentification).all()
+            new_instruments = [
+                x
+                for x in instruments_known_type
+                if not any(
+                    y
+                    for y in old_instruments
+                    if y.isin == x.isin
+                )
+            ]
+            session.add_all([
+                self.tse_client_to_database_instrument_identification(
+                    raw=x
+                )
+                for x in new_instruments
+            ])
+            session.commit()
+
+    @classmethod
+    def tse_client_to_database_instrument_identification(
+        cls,
+        raw: TseClientInstrumentIdentitification
+    ) -> InstrumentIdentification:
+        """Converts an instrument identification from TseClient to database model"""
+        return InstrumentIdentification(
+            isin=raw.isin,
+            ticker=raw.ticker,
+            tsetmc_code=raw.tsetmc_code,
+            name_persian=raw.name_persian,
+            name_english=raw.name_english,
+            instrument_type_id=raw.type_id
+        )
+
+    def __filter_identifications_by_type(
+            self,
+            instruments: list[TseClientInstrumentIdentitification],
+            instrument_types: list[InstrumentType],
+            report: line.JobReport
+    ) -> list[TseClientInstrumentIdentitification]:
+        """Filters out the instruments with unknown types"""
+        type_ids = [x.instrument_type_id for x in instrument_types]
+        unknown = [
+            x
+            for x in instruments
+            if x.type_id not in type_ids
+        ]
+        if unknown:
+            report.information.append(
+                f"Unknown types ➡️ {list(set([x.type_id for x in unknown]))!r}"
+            )
+            report.warnings.append(unknown.__repr__())
+        known = [
+            x
+            for x in instruments
+            if x.type_id in type_ids
+        ]
+        return known
 
     async def __get_global_instruments_from_tse_client(
-            self, job_description: JobDescription
+            self,
+            job_description: JobDescription,
+            report: line.JobReport
     ) -> tuple[
         list[TseClientInstrumentIdentitification],
         list[TseClientInstrumentIdentitification]
@@ -71,9 +141,12 @@ class TseClientInstrumentsUpdater(line.Worker):
         async with TseClientScraper() as tse_client:
             instruments, indices = await tse_client.get_instruments_list()
         self._LOGGER.info(
-            "Total instruments count: [%d], Total indices count: [%d]",
+            "Global instruments count: [%d], Global indices count: [%d]",
             len(instruments),
             len(indices)
+        )
+        report.information.append(
+            f"Global instruments ➡️ {len(instruments)}"
         )
         self.__pre_process_identifications(instruments)
         self.__pre_process_identifications(indices)

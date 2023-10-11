@@ -102,8 +102,8 @@ class InstrumentIdentification(Base):
     isin: Mapped[str] = mapped_column(NCHAR(12), primary_key=True)
     tsetmc_code: Mapped[str] = mapped_column(NVARCHAR(32))
     ticker: Mapped[str] = mapped_column(NVARCHAR(32))
-    persian_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
-    english_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
+    name_persian: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
+    name_english: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
     instrument_type_id: Mapped[int] = mapped_column(
         ForeignKey("instrument_type.instrument_type_id")
     )
@@ -129,8 +129,8 @@ class IndexIdentification(Base):
 
     isin: Mapped[str] = mapped_column(NCHAR(12), primary_key=True)
     tsetmc_code: Mapped[str] = mapped_column(NVARCHAR(32))
-    persian_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
-    english_name: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
+    name_persian: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
+    name_english: Mapped[Optional[str]] = mapped_column(NVARCHAR(64))
 
 
 @dataclass
