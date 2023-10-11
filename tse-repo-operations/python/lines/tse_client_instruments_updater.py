@@ -14,7 +14,8 @@ from utils.persian_arabic import arabic_to_persian
 from models.tse_market import (
     get_tse_market_session,
     InstrumentType,
-    InstrumentIdentification
+    InstrumentIdentification,
+    IndexIdentification
 )
 
 
@@ -71,6 +72,7 @@ class TseClientInstrumentsUpdater(line.Worker):
                 report
             )
             old_instruments = session.query(InstrumentIdentification).all()
+            old_indices = session.query(IndexIdentification).all()
             new_instruments = [
                 x
                 for x in instruments_known_type
@@ -86,7 +88,41 @@ class TseClientInstrumentsUpdater(line.Worker):
                 )
                 for x in new_instruments
             ])
+            report.information.append(
+                f"New instruments added ➡️ {len(new_instruments)}"
+            )
+            new_indices = [
+                x
+                for x in indices
+                if not any(
+                    y
+                    for y in old_indices
+                    if y.isin == x.isin
+                )
+            ]
+            session.add_all([
+                self.tse_client_to_database_index_identification(
+                    raw=x
+                )
+                for x in new_indices
+            ])
+            report.information.append(
+                f"New indices added ➡️ {len(new_indices)}"
+            )
             session.commit()
+
+    @classmethod
+    def tse_client_to_database_index_identification(
+        cls,
+        raw: TseClientInstrumentIdentitification
+    ) -> IndexIdentification:
+        """Converts an instrument identification from TseClient to database model"""
+        return IndexIdentification(
+            isin=raw.isin,
+            tsetmc_code=raw.tsetmc_code,
+            name_persian=raw.name_persian,
+            name_english=raw.name_english,
+        )
 
     @classmethod
     def tse_client_to_database_instrument_identification(
@@ -118,9 +154,9 @@ class TseClientInstrumentsUpdater(line.Worker):
         ]
         if unknown:
             report.information.append(
-                f"Unknown types ➡️ {list(set([x.type_id for x in unknown]))!r}"
+                f"Unknown types ➡️ {list({x.type_id for x in unknown})!r}"
             )
-            report.warnings.append(unknown.__repr__())
+            report.warnings.append(repr(unknown))
         known = [
             x
             for x in instruments
