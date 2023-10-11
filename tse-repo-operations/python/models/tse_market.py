@@ -1,3 +1,4 @@
+"""This module holds the models for the tse_market database"""
 from __future__ import annotations
 from datetime import date, datetime
 from typing import Optional
@@ -15,6 +16,7 @@ Base = declarative_base()
 
 @dataclass
 class IndustrySector(Base):
+    """IndustrySector is used to identify the sector of an instrument"""
     __tablename__ = "industry_sector"
 
     industry_sector_id: Mapped[int] = mapped_column(primary_key=True)
@@ -30,6 +32,7 @@ class IndustrySector(Base):
 
 @dataclass
 class IndustrySubSector(Base):
+    """IndustrySubSector is a subset of IndustrySector"""
     __tablename__ = "industry_sub_sector"
 
     industry_sub_sector_id: Mapped[int] = mapped_column(primary_key=True)
@@ -51,6 +54,7 @@ title={self.title}, industry_sector={self.industry_sector})"
 
 @dataclass
 class ExchangeMarket(Base):
+    """Identifies the exchange in which the instrument is traded"""
     __tablename__ = "exchange_market"
 
     exchange_market_id: Mapped[int] = mapped_column(primary_key=True)
@@ -66,6 +70,7 @@ class ExchangeMarket(Base):
 
 @dataclass
 class InstrumentType(Base):
+    """Instruments are of different types and this table is used for that purpose"""
     __tablename__ = "instrument_type"
 
     instrument_type_id: Mapped[int] = mapped_column(primary_key=True)
@@ -81,6 +86,7 @@ class InstrumentType(Base):
 
 @dataclass
 class InstrumentIdentification(Base):
+    """Holds the identification of an instrument"""
     __tablename__ = "instrument_identification"
 
     isin: Mapped[str] = mapped_column(NCHAR(12), primary_key=True)
@@ -108,6 +114,7 @@ class InstrumentIdentification(Base):
 
 @dataclass
 class IndexIdentification(Base):
+    """Holds the identification of an index"""
     __tablename__ = "index_identification"
 
     isin: Mapped[str] = mapped_column(NCHAR(12), primary_key=True)
@@ -118,6 +125,7 @@ class IndexIdentification(Base):
 
 @dataclass
 class DailyTradeCandle(Base):
+    """Historical daily trade candles"""
     __tablename__ = "daily_trade_candle"
 
     daily_trade_candle_id: Mapped[int] = mapped_column(
@@ -144,6 +152,7 @@ class DailyTradeCandle(Base):
 
 @dataclass
 class DailyClientType(Base):
+    """Historical daily client types"""
     __tablename__ = "daily_client_type"
 
     daily_client_type_id: Mapped[int] = mapped_column(
@@ -173,6 +182,7 @@ class DailyClientType(Base):
 
 @dataclass
 class DailyInstrumentDetail(Base):
+    """Historical daily instrument details"""
     __tablename__ = "daily_instrument_detail"
 
     daily_instrument_detail_id: Mapped[int] = mapped_column(
@@ -194,6 +204,7 @@ class DailyInstrumentDetail(Base):
 
 @dataclass
 class TickTrade(Base):
+    """The historical microtrades of an instrument"""
     __tablename__ = "tick_trade"
 
     tick_trade_id: Mapped[int] = mapped_column(
@@ -215,6 +226,7 @@ class TickTrade(Base):
 
 @dataclass
 class DailyIndexValue(Base):
+    """Value of an index historically in a daily period"""
     __tablename__ = "daily_index_value"
 
     daily_index_value_id: Mapped[int] = mapped_column(

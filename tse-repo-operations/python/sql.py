@@ -1,17 +1,9 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
-from typing import Optional
-from sqlalchemy.types import NCHAR, NVARCHAR, BIGINT
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import declarative_base
-from sqlalchemy import create_engine, MetaData, Table
-from sqlalchemy.orm import mapper, sessionmaker
-from dotenv import load_dotenv
 import os
 from datetime import date, datetime
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 from models.tse_market import InstrumentType
 
 load_dotenv()
