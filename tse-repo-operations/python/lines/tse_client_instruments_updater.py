@@ -91,6 +91,8 @@ class TseClientInstrumentsUpdater(line.Worker):
             report.information.append(
                 f"New instruments added ➡️ {len(new_instruments)}"
             )
+            for ind in new_instruments:
+                self._LOGGER.info("New instrument : %s", repr(ind))
             new_indices = [
                 x
                 for x in indices
@@ -109,7 +111,57 @@ class TseClientInstrumentsUpdater(line.Worker):
             report.information.append(
                 f"New indices added ➡️ {len(new_indices)}"
             )
+            for ind in new_indices:
+                self._LOGGER.info("New index : %s", repr(ind))
+            self.__handle_changed_instruments(
+                instruments=instruments,
+                old_instruments=old_instruments,
+                report=report
+            )
             session.commit()
+
+    def __handle_changed_instruments(
+        self,
+        instruments: list[TseClientInstrumentIdentitification],
+        old_instruments: list[InstrumentIdentification],
+        report: line.JobReport
+    ):
+        """Update changed instruments on database"""
+        updated = 0
+        for old_instrument in old_instruments:
+            new_instrument = next((
+                x
+                for x in instruments
+                if x.isin == old_instrument.isin
+            ), None)
+            if new_instrument:
+                if self.__old_instrument_has_updates(old_instrument, new_instrument):
+                    updated += 1
+                    self._LOGGER.info(
+                        "Instrument changed: %s => %s",
+                        repr(old_instrument),
+                        repr(new_instrument)
+                    )
+                    old_instrument.ticker = new_instrument.ticker
+                    old_instrument.name_english = new_instrument.name_english
+                    old_instrument.name_persian = new_instrument.name_persian
+                    old_instrument.tsetmc_code = new_instrument.tsetmc_code
+        report.information.append(
+            f"Updated instruments ➡️ {updated}"
+        )
+
+    def __old_instrument_has_updates(
+            self,
+            old_instrument: InstrumentIdentification,
+            new_instrument: TseClientInstrumentIdentitification
+    ) -> bool:
+        """Checks if there is a mismatch between old and new instrument"""
+        return not (
+            old_instrument.ticker == new_instrument.ticker and
+            old_instrument.name_persian == new_instrument.name_persian and
+            old_instrument.name_english == new_instrument.name_english and
+            old_instrument.tsetmc_code == new_instrument.tsetmc_code
+        )
 
     @classmethod
     def tse_client_to_database_index_identification(
