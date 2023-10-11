@@ -87,6 +87,8 @@ class InstrumentType(Base):
 @dataclass
 class InstrumentIdentification(Base):
     """Holds the identification of an instrument"""
+    # pylint: disable=too-many-instance-attributes
+    # Since this table imitates a database table, the attribute count is ok
     __tablename__ = "instrument_identification"
 
     isin: Mapped[str] = mapped_column(NCHAR(12), primary_key=True)
@@ -126,6 +128,8 @@ class IndexIdentification(Base):
 @dataclass
 class DailyTradeCandle(Base):
     """Historical daily trade candles"""
+    # pylint: disable=too-many-instance-attributes
+    # Since this table imitates a database table, the attribute count is ok
     __tablename__ = "daily_trade_candle"
 
     daily_trade_candle_id: Mapped[int] = mapped_column(
@@ -153,6 +157,8 @@ class DailyTradeCandle(Base):
 @dataclass
 class DailyClientType(Base):
     """Historical daily client types"""
+    # pylint: disable=too-many-instance-attributes
+    # Since this table imitates a database table, the attribute count is ok
     __tablename__ = "daily_client_type"
 
     daily_client_type_id: Mapped[int] = mapped_column(
@@ -183,6 +189,8 @@ class DailyClientType(Base):
 @dataclass
 class DailyInstrumentDetail(Base):
     """Historical daily instrument details"""
+    # pylint: disable=too-many-instance-attributes
+    # Since this table imitates a database table, the attribute count is ok
     __tablename__ = "daily_instrument_detail"
 
     daily_instrument_detail_id: Mapped[int] = mapped_column(
@@ -205,6 +213,8 @@ class DailyInstrumentDetail(Base):
 @dataclass
 class TickTrade(Base):
     """The historical microtrades of an instrument"""
+    # pylint: disable=too-many-instance-attributes
+    # Since this table imitates a database table, the attribute count is ok
     __tablename__ = "tick_trade"
 
     tick_trade_id: Mapped[int] = mapped_column(
