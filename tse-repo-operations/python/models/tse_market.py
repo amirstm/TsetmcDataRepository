@@ -1,17 +1,23 @@
 """This module holds the models for the tse_market database"""
 from __future__ import annotations
+import os
 from datetime import date, datetime
 from typing import Optional
 from dataclasses import dataclass
+from dotenv import load_dotenv
+import sqlalchemy
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import NCHAR, NVARCHAR, BIGINT
 from sqlalchemy.orm import mapped_column
 from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import Session
 
 
-Base = declarative_base()
+@dataclass
+class Base(DeclarativeBase):
+    """Base class for model"""
 
 
 @dataclass
@@ -253,3 +259,27 @@ class DailyIndexValue(Base):
 
     instrument_identification: Mapped[InstrumentIdentification] = relationship(
     )
+
+
+def get_tse_market_session():
+    """Get a Session object for working with the tse_market database"""
+    load_dotenv()
+    mysql_host = os.getenv("MYSQL_HOST")
+    mysql_db = os.getenv("MYSQL_DB")
+    mysql_user = os.getenv("MYSQL_USER")
+    mysql_port = os.getenv("MYSQL_PORT")
+    mysql_password = os.getenv("MYSQL_PASSWORD")
+    # pylint: disable = consider-using-f-string
+    # Not using f-strings because the VS code autoformatter adds spaces
+    mysql_connector = "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(
+        mysql_user,
+        mysql_password,
+        mysql_host,
+        mysql_port,
+        mysql_db
+    )
+    engine = sqlalchemy.create_engine(
+        mysql_connector,
+        echo=False
+    )
+    return Session(engine)
