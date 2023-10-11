@@ -7,12 +7,14 @@ from dataclasses import dataclass
 from dotenv import load_dotenv
 import sqlalchemy
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
 from sqlalchemy.types import NCHAR, NVARCHAR, BIGINT
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import (
+    relationship,
+    mapped_column,
+    Mapped,
+    DeclarativeBase,
+    Session
+)
 
 
 @dataclass

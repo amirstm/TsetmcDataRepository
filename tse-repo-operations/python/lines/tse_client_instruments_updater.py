@@ -11,6 +11,11 @@ from tse_utils.tse_client import (
     TseClientScraper
 )
 from utils.persian_arabic import arabic_to_persian
+from models.tse_market import (
+    get_tse_market_session,
+    InstrumentType,
+    InstrumentIdentification
+)
 
 
 @dataclass
@@ -51,6 +56,9 @@ class TseClientInstrumentsUpdater(line.Worker):
             indices: list[TseClientInstrumentIdentitification]
     ):
         """Updates the database with the instruments and the indices"""
+        with get_tse_market_session() as session:
+            instrument_types = session.query(InstrumentType).all()
+            print(instrument_types)
 
     async def __get_global_instruments_from_tse_client(
             self, job_description: JobDescription
