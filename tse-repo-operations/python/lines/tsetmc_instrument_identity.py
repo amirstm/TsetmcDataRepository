@@ -27,7 +27,7 @@ class TsetmcInstrumentIdentity(line.Worker):
 
     async def perform_task(self, job_description: JobDescription) -> line.JobReport:
         """Performs the task using the provided job description"""
-        return _Shift(job_description=job_description).perform_task()
+        return await _Shift(job_description=job_description).perform_task()
 
 
 class _Shift:
@@ -37,6 +37,27 @@ class _Shift:
         self.job_description: JobDescription = job_description
         self.report: line.JobReport = line.JobReport()
 
-    def perform_task(self) -> line.JobReport:
-
+    async def perform_task(self) -> line.JobReport:
+        matched_instruments = self.match_instruments(
+            self.job_description.search_by
+        )
+        # match len(matched_instruments):
+        #     case 0:
+        #         self.report
         return self.report
+
+    def match_instruments(
+            cls,
+            search_by: str
+    ) -> list[InstrumentIdentification]:
+        """Matches the instruments from database with search_by input"""
+        with get_tse_market_session() as session:
+            by_isin = session.query(InstrumentIdentification).where(
+                InstrumentIdentification.isin == search_by
+            ).first()
+            if by_isin:
+                return [by_isin]
+            by_ticker = session.query(InstrumentIdentification).where(
+                InstrumentIdentification.ticker == search_by
+            ).all()
+            return by_ticker
