@@ -13,6 +13,7 @@ from telegram_task.line import (
 )
 from lines.tse_client_instruments_updater import TseClientInstrumentsUpdater
 from lines.tsetmc_instrument_identity_catcher import TsetmcInstrumentIdentityCatcher
+from lines.tsetmc_daily_historical_catcher import TsetmcDailyHistoricalCatcher
 
 load_dotenv()
 
@@ -66,6 +67,9 @@ async def main():
         ),
         LineManager(
             worker=TsetmcInstrumentIdentityCatcher()
+        ),
+        LineManager(
+            worker=TsetmcDailyHistoricalCatcher()
         )
     )
     await president.start_operation_async()
