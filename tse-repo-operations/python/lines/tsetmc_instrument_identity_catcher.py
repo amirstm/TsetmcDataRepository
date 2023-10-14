@@ -6,7 +6,7 @@ from typing import Callable
 from dataclasses import dataclass
 from datetime import date
 from telegram_task import line
-import tse_utils.tsetmc as tsetmc
+from tse_utils import tsetmc
 from utils.persian_arabic import arabic_to_persian
 from models.tse_market import (
     get_tse_market_session,
@@ -22,12 +22,19 @@ class JobDescription(line.JobDescription):
     search_by: str = None
 
 
-class TsetmcInstrumentIdentity(line.Worker):
+class TsetmcInstrumentIdentityCatcher(line.Worker):
     """Overriden worker for module tsetmc_instrument_identity"""
 
     async def perform_task(self, job_description: JobDescription) -> line.JobReport:
         """Performs the task using the provided job description"""
         return await _Shift(job_description=job_description).perform_task()
+
+    @classmethod
+    def default_job_description(cls) -> JobDescription:
+        """Creates the default job description for this worker"""
+        return JobDescription(
+            search_by=""
+        )
 
 
 class _Shift:
@@ -41,11 +48,40 @@ class _Shift:
         matched_instruments = self.match_instruments(
             self.job_description.search_by
         )
-        # match len(matched_instruments):
-        #     case 0:
-        #         self.report
+        """Performs the task using the provided job description"""
+        match len(matched_instruments):
+            case 0:
+                raise line.TaskException(
+                    message="No instruments were matched with your search parameter."
+                )
+            case 1:
+                self.update_instrument_from_tsetmc(matched_instruments[0])
+            case _:
+                raise line.TaskException(
+                    message="Multiple instruments were matched with your search parameter.",
+                    html_message=f"""\
+Multiple instruments were matched with your search parameter. Please choose one.
+{"\n".join([
+                        tsetmc.ticker_with_tsetmc_homepage_link(
+                            ticker=x.ticker,
+                            tsetmc_code=x.tsetmc_code
+                        ) + ": " + x.isin
+                        for x in matched_instruments
+                    ])}
+"""
+                )
         return self.report
 
+    def update_instrument_from_tsetmc(
+            self,
+            instrument: InstrumentIdentification
+    ) -> None:
+        """
+        After a single instrument has been matched, \
+        this method will fetch and update that instrument's data
+        """
+
+    @classmethod
     def match_instruments(
             cls,
             search_by: str

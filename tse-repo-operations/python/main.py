@@ -12,6 +12,7 @@ from telegram_task.line import (
     CronJobOrder,
 )
 from lines.tse_client_instruments_updater import TseClientInstrumentsUpdater
+from lines.tsetmc_instrument_identity_catcher import TsetmcInstrumentIdentityCatcher
 
 load_dotenv()
 
@@ -61,15 +62,10 @@ async def main():
     )
     president.add_line(
         LineManager(
-            worker=TseClientInstrumentsUpdater(),
-            cron_job_orders=[
-                CronJobOrder(
-                    daily_run_time=(
-                        datetime.now() + timedelta(seconds=3)
-                    ).time(),
-                    job_description=TseClientInstrumentsUpdater.default_job_description()
-                )
-            ]
+            worker=TseClientInstrumentsUpdater()
+        ),
+        LineManager(
+            worker=TsetmcInstrumentIdentityCatcher()
         )
     )
     await president.start_operation_async()
