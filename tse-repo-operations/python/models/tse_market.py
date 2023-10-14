@@ -121,6 +121,10 @@ class InstrumentIdentification(Base):
     exchange_market: Mapped[ExchangeMarket] = relationship(
     )
 
+    def __repr__(self) -> str:
+        return f"InstrumentIdentification(isin={self.isin}, ticker={self.ticker}, \
+tsetmc_code={self.tsetmc_code})"
+
 
 @dataclass
 class IndexIdentification(Base):
