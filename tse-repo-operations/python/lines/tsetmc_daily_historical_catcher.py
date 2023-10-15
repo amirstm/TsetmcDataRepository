@@ -77,7 +77,7 @@ class _Shift:
         failure = 0
         client_type_data_inserted = 0
         new_batch_data = []
-        async with tsetmc.TsetmcScraper() as scaper:
+        async with tsetmc.TsetmcScraper() as scraper:
             for instrument in instruments:
                 previous_last_record = next(
                     (x for x in max_record_dates if x.isin == instrument.isin), None
@@ -86,7 +86,7 @@ class _Shift:
                     self._logger.info(
                         "Catching client type data for %s", repr(instrument)
                     )
-                    client_type_data = await scaper.get_client_type_daily_list(
+                    client_type_data = await scraper.get_client_type_daily_list(
                         tsetmc_code=instrument.tsetmc_code
                     )
                     success += 1
@@ -131,14 +131,14 @@ class _Shift:
         failure = 0
         trade_data_inserted = 0
         new_batch_data = []
-        async with tsetmc.TsetmcScraper() as scaper:
+        async with tsetmc.TsetmcScraper() as scraper:
             for instrument in instruments:
                 previous_last_record = next(
                     (x for x in max_record_dates if x.isin == instrument.isin), None
                 )
                 try:
                     self._logger.info("Catching trade data for %s", repr(instrument))
-                    trade_data = await scaper.get_closing_price_daily_list(
+                    trade_data = await scraper.get_closing_price_daily_list(
                         tsetmc_code=instrument.tsetmc_code
                     )
                     success += 1
