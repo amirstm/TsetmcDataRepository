@@ -8,13 +8,7 @@ from dotenv import load_dotenv
 import sqlalchemy
 from sqlalchemy import ForeignKey
 from sqlalchemy.types import NCHAR, NVARCHAR, BIGINT
-from sqlalchemy.orm import (
-    relationship,
-    mapped_column,
-    Mapped,
-    DeclarativeBase,
-    Session
-)
+from sqlalchemy.orm import relationship, mapped_column, Mapped, DeclarativeBase, Session
 
 
 @dataclass
@@ -25,6 +19,7 @@ class Base(DeclarativeBase):
 @dataclass
 class IndustrySector(Base):
     """IndustrySector is used to identify the sector of an instrument"""
+
     __tablename__ = "industry_sector"
 
     industry_sector_id: Mapped[int] = mapped_column(primary_key=True)
@@ -41,6 +36,7 @@ class IndustrySector(Base):
 @dataclass
 class IndustrySubSector(Base):
     """IndustrySubSector is a subset of IndustrySector"""
+
     __tablename__ = "industry_sub_sector"
 
     industry_sub_sector_id: Mapped[int] = mapped_column(primary_key=True)
@@ -49,8 +45,7 @@ class IndustrySubSector(Base):
         ForeignKey("industry_sector.industry_sector_id")
     )
 
-    industry_sector: Mapped[IndustrySector] = relationship(
-    )
+    industry_sector: Mapped[IndustrySector] = relationship()
     instrument_identifications: Mapped[list[InstrumentIdentification]] = relationship(
         back_populates="industry_sub_sector", cascade="all, delete-orphan"
     )
@@ -63,6 +58,7 @@ title={self.title}, industry_sector={self.industry_sector})"
 @dataclass
 class ExchangeMarket(Base):
     """Identifies the exchange in which the instrument is traded"""
+
     __tablename__ = "exchange_market"
 
     exchange_market_id: Mapped[int] = mapped_column(primary_key=True)
@@ -79,6 +75,7 @@ class ExchangeMarket(Base):
 @dataclass
 class InstrumentType(Base):
     """Instruments are of different types and this table is used for that purpose"""
+
     __tablename__ = "instrument_type"
 
     instrument_type_id: Mapped[int] = mapped_column(primary_key=True)
@@ -95,6 +92,7 @@ class InstrumentType(Base):
 @dataclass
 class InstrumentIdentification(Base):
     """Holds the identification of an instrument"""
+
     # pylint: disable=too-many-instance-attributes
     # Since this table imitates a database table, the attribute count is ok
     __tablename__ = "instrument_identification"
@@ -114,12 +112,9 @@ class InstrumentIdentification(Base):
         ForeignKey("exchange_market.exchange_market_id")
     )
 
-    instrument_type: Mapped[InstrumentType] = relationship(
-    )
-    industry_sub_sector: Mapped[IndustrySubSector] = relationship(
-    )
-    exchange_market: Mapped[ExchangeMarket] = relationship(
-    )
+    instrument_type: Mapped[InstrumentType] = relationship()
+    industry_sub_sector: Mapped[IndustrySubSector] = relationship()
+    exchange_market: Mapped[ExchangeMarket] = relationship()
 
     def __repr__(self) -> str:
         return f"InstrumentIdentification(isin={self.isin}, ticker={self.ticker}, \
@@ -129,6 +124,7 @@ tsetmc_code={self.tsetmc_code})"
 @dataclass
 class IndexIdentification(Base):
     """Holds the identification of an index"""
+
     __tablename__ = "index_identification"
 
     isin: Mapped[str] = mapped_column(NCHAR(12), primary_key=True)
@@ -140,17 +136,15 @@ class IndexIdentification(Base):
 @dataclass
 class DailyTradeCandle(Base):
     """Historical daily trade candles"""
+
     # pylint: disable=too-many-instance-attributes
     # Since this table imitates a database table, the attribute count is ok
     __tablename__ = "daily_trade_candle"
 
     daily_trade_candle_id: Mapped[int] = mapped_column(
-        primary_key=True,
-        autoincrement=True
+        primary_key=True, autoincrement=True
     )
-    isin: Mapped[str] = mapped_column(
-        ForeignKey("instrument_identification.isin")
-    )
+    isin: Mapped[str] = mapped_column(ForeignKey("instrument_identification.isin"))
     record_date: Mapped[date] = mapped_column()
     previous_price: Mapped[int] = mapped_column(BIGINT())
     open_price: Mapped[int] = mapped_column(BIGINT())
@@ -162,24 +156,21 @@ class DailyTradeCandle(Base):
     trade_volume: Mapped[int] = mapped_column(BIGINT())
     trade_value: Mapped[int] = mapped_column(BIGINT())
 
-    instrument_identification: Mapped[InstrumentIdentification] = relationship(
-    )
+    instrument_identification: Mapped[InstrumentIdentification] = relationship()
 
 
 @dataclass
 class DailyClientType(Base):
     """Historical daily client types"""
+
     # pylint: disable=too-many-instance-attributes
     # Since this table imitates a database table, the attribute count is ok
     __tablename__ = "daily_client_type"
 
     daily_client_type_id: Mapped[int] = mapped_column(
-        primary_key=True,
-        autoincrement=True
+        primary_key=True, autoincrement=True
     )
-    isin: Mapped[str] = mapped_column(
-        ForeignKey("instrument_identification.isin")
-    )
+    isin: Mapped[str] = mapped_column(ForeignKey("instrument_identification.isin"))
     record_date: Mapped[date] = mapped_column()
     natural_buy_num: Mapped[int] = mapped_column()
     legal_buy_num: Mapped[int] = mapped_column()
@@ -194,77 +185,65 @@ class DailyClientType(Base):
     natural_sell_volume: Mapped[int] = mapped_column(BIGINT())
     legal_sell_volume: Mapped[int] = mapped_column(BIGINT())
 
-    instrument_identification: Mapped[InstrumentIdentification] = relationship(
-    )
+    instrument_identification: Mapped[InstrumentIdentification] = relationship()
 
 
 @dataclass
 class DailyInstrumentDetail(Base):
     """Historical daily instrument details"""
+
     # pylint: disable=too-many-instance-attributes
     # Since this table imitates a database table, the attribute count is ok
     __tablename__ = "daily_instrument_detail"
 
     daily_instrument_detail_id: Mapped[int] = mapped_column(
-        primary_key=True,
-        autoincrement=True
+        primary_key=True, autoincrement=True
     )
-    isin: Mapped[str] = mapped_column(
-        ForeignKey("instrument_identification.isin")
-    )
+    isin: Mapped[str] = mapped_column(ForeignKey("instrument_identification.isin"))
     record_date: Mapped[date] = mapped_column()
     total_share_count: Mapped[int] = mapped_column(BIGINT())
     base_volume: Mapped[int] = mapped_column(BIGINT())
     max_price_threshold: Mapped[int] = mapped_column(BIGINT())
     min_price_threshold: Mapped[int] = mapped_column(BIGINT())
 
-    instrument_identification: Mapped[InstrumentIdentification] = relationship(
-    )
+    instrument_identification: Mapped[InstrumentIdentification] = relationship()
 
 
 @dataclass
 class TickTrade(Base):
     """The historical microtrades of an instrument"""
+
     # pylint: disable=too-many-instance-attributes
     # Since this table imitates a database table, the attribute count is ok
     __tablename__ = "tick_trade"
 
-    tick_trade_id: Mapped[int] = mapped_column(
-        primary_key=True,
-        autoincrement=True
-    )
-    isin: Mapped[str] = mapped_column(
-        ForeignKey("instrument_identification.isin")
-    )
+    tick_trade_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    isin: Mapped[str] = mapped_column(ForeignKey("instrument_identification.isin"))
     record_date_time: Mapped[datetime] = mapped_column()
     htn: Mapped[int] = mapped_column()
     quantity: Mapped[int] = mapped_column(BIGINT())
     price: Mapped[int] = mapped_column(BIGINT())
     invalidated: Mapped[bool] = mapped_column(default=False)
 
-    instrument_identification: Mapped[InstrumentIdentification] = relationship(
-    )
+    instrument_identification: Mapped[InstrumentIdentification] = relationship()
 
 
 @dataclass
 class DailyIndexValue(Base):
     """Value of an index historically in a daily period"""
+
     __tablename__ = "daily_index_value"
 
     daily_index_value_id: Mapped[int] = mapped_column(
-        primary_key=True,
-        autoincrement=True
+        primary_key=True, autoincrement=True
     )
-    isin: Mapped[str] = mapped_column(
-        ForeignKey("instrument_identification.isin")
-    )
+    isin: Mapped[str] = mapped_column(ForeignKey("instrument_identification.isin"))
     record_date: Mapped[date] = mapped_column()
     close_value: Mapped[float] = mapped_column()
     max_value: Mapped[float] = mapped_column()
     min_value: Mapped[float] = mapped_column()
 
-    instrument_identification: Mapped[InstrumentIdentification] = relationship(
-    )
+    instrument_identification: Mapped[InstrumentIdentification] = relationship()
 
 
 def get_tse_market_session():
@@ -275,17 +254,14 @@ def get_tse_market_session():
     mysql_user = os.getenv("MYSQL_USER")
     mysql_port = os.getenv("MYSQL_PORT")
     mysql_password = os.getenv("MYSQL_PASSWORD")
-    # pylint: disable = consider-using-f-string
-    # Not using f-strings because the VS code autoformatter adds spaces
-    mysql_connector = "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(
-        mysql_user,
-        mysql_password,
-        mysql_host,
-        mysql_port,
-        mysql_db
-    )
-    engine = sqlalchemy.create_engine(
-        mysql_connector,
-        echo=False
-    )
+    mysql_connector = f"mysql+mysqlconnector://{mysql_user}:{mysql_password}@\
+{mysql_host}:{mysql_port}/{mysql_db}"
+    # mysql_connector = "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(
+    #     mysql_user,
+    #     mysql_password,
+    #     mysql_host,
+    #     mysql_port,
+    #     mysql_db
+    # )
+    engine = sqlalchemy.create_engine(mysql_connector, echo=False)
     return Session(engine)

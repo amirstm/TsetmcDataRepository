@@ -49,7 +49,7 @@ class _Shift:
             job_description: JobDescription,
             logger: logging.Logger
     ):
-        self._LOGGER: logging.Logger = logger
+        self._logger: logging.Logger = logger
         self.job_description: JobDescription = job_description
         self.report: line.JobReport = line.JobReport()
 
@@ -138,7 +138,7 @@ Multiple instruments were matched with your search parameter. Please choose one.
             ExchangeMarket.exchange_market_id == tsetmc_identity.market_code
         ).first()
         if not current_exchange:
-            self._LOGGER.info(
+            self._logger.info(
                 "Adding exchange [%d]: [%s] to database.",
                 tsetmc_identity.market_code,
                 tsetmc_identity.market_title
@@ -158,7 +158,7 @@ Multiple instruments were matched with your search parameter. Please choose one.
             IndustrySector.industry_sector_id == tsetmc_identity.sector_code
         ).first()
         if not current_sector:
-            self._LOGGER.info(
+            self._logger.info(
                 "Adding sector [%d]: [%s] to database.",
                 tsetmc_identity.sector_code,
                 tsetmc_identity.sector_title
@@ -171,7 +171,7 @@ Multiple instruments were matched with your search parameter. Please choose one.
             IndustrySubSector.industry_sub_sector_id == tsetmc_identity.sub_sector_code
         ).first()
         if not current_sub_sector:
-            self._LOGGER.info(
+            self._logger.info(
                 "Adding sub sector [%d]: [%s] to database.",
                 tsetmc_identity.sub_sector_code,
                 tsetmc_identity.sub_sector_title

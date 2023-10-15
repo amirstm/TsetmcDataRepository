@@ -15,8 +15,8 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - master-data:/var/lib/mysql
-      - master-data-cnf:/etc/mysql/conf.d
+      - master_data:/var/lib/mysql
+      - master_data_cnf:/etc/mysql/conf.d
       - ./master/setup.sql:/docker-entrypoint-initdb.d/setup.sql
     env_file: 
       - ./master/.env.mysql
@@ -84,8 +84,8 @@ services:
   #         - operations
 
 volumes:
-  master-data:
-  master-data-cnf:
+  master_data:
+  master_data_cnf:
   sshproxy_config:
 
 networks:
