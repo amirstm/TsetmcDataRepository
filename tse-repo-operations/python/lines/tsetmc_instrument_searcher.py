@@ -5,7 +5,6 @@ one can search through the instruments and add new instruments to the database.
 from dataclasses import dataclass
 import logging
 import httpx
-from sqlalchemy.orm import Session
 from telegram_task import line
 from tse_utils import tsetmc
 from models.tse_market import (
@@ -56,7 +55,42 @@ class _Shift:
         new_identifications = await self.get_instrument_identifications(
             new_search_results
         )
+        self.insert_to_identifications(new_identifications)
         return self.report
+
+    def insert_to_identifications(
+        self, new_identifications: list[InstrumentIdentification]
+    ) -> None:
+        """Inserts new records to database"""
+        with get_tse_market_session() as session:
+            instrument_types = session.query(InstrumentType).all()
+            unknown_type_instruments = [
+                x
+                for x in new_identifications
+                if not any(
+                    y
+                    for y in instrument_types
+                    if y.instrument_type_id == x.instrument_type_id
+                )
+            ]
+            if unknown_type_instruments:
+                set_unknown = {x.instrument_type_id for x in unknown_type_instruments}
+                self.report.information.append(f"Unknown types ➡️ {set_unknown!r}")
+                self.report.warnings.append(repr(unknown_type_instruments))
+            instruments_to_add = [
+                x
+                for x in new_identifications
+                if any(
+                    y
+                    for y in instrument_types
+                    if y.instrument_type_id == x.instrument_type_id
+                )
+            ]
+            session.add_all(instruments_to_add)
+            session.commit()
+            self.report.information.append(
+                f"Inserted instruments ➡️ {len(instruments_to_add)}",
+            )
 
     async def get_instrument_identifications(
         self, search_results: list[tsetmc.InstrumentSearchItem]
@@ -70,9 +104,19 @@ class _Shift:
                         "Getting instrument identity for [%s].",
                         repr(search_result),
                     )
+                    instrument_identity = await scraper.get_instrument_identity(
+                        tsetmc_code=search_result.tsetmc_code
+                    )
                     results.append(
-                        await scraper.get_instrument_identity(
-                            tsetmc_code=search_result.tsetmc_code
+                        InstrumentIdentification(
+                            isin=instrument_identity.isin,
+                            tsetmc_code=instrument_identity.tsetmc_code,
+                            name_persian=instrument_identity.name_persian,
+                            name_english=instrument_identity.name_english,
+                            ticker=instrument_identity.ticker,
+                            exchange_market_id=instrument_identity.market_code,
+                            industry_sub_sector_id=instrument_identity.sector_code,
+                            instrument_type_id=instrument_identity.type_id,
                         )
                     )
                 except (httpx.RequestError, tsetmc.TsetmcScrapeException):
@@ -126,13 +170,11 @@ class _Shift:
             and len(search_results) >= 40
             and obsolete_count == 0
         ):
-            new_search_bys = set(
-                [
-                    x.ticker[: len(search_by) + 1]
-                    for x in search_results
-                    if x.ticker.startswith(search_by) and len(x.ticker) > len(search_by)
-                ]
-            )
+            new_search_bys = {
+                x.ticker[: len(search_by) + 1]
+                for x in search_results
+                if x.ticker.startswith(search_by) and len(x.ticker) > len(search_by)
+            }
             for new_search_by in new_search_bys:
                 search_results.extend(await self.search_tsetmc(search_by=new_search_by))
         return search_results
