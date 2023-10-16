@@ -23,7 +23,7 @@ class JobDescription(line.JobDescription):
     do_recursive: bool = None
 
 
-class TsetmcInstrumentIdentityCatcher(line.Worker):
+class TsetmcInstrumentSearcher(line.Worker):
     """Overriden worker for module tsetmc_instrument_searcher"""
 
     async def perform_task(self, job_description: JobDescription) -> line.JobReport:
@@ -35,7 +35,7 @@ class TsetmcInstrumentIdentityCatcher(line.Worker):
     @classmethod
     def default_job_description(cls) -> JobDescription:
         """Creates the default job description for this worker"""
-        return JobDescription(search_by="", do_recursive=False)
+        return JobDescription(search_by="", do_recursive=True)
 
 
 class _Shift:
@@ -52,6 +52,50 @@ class _Shift:
             self.job_description.search_by
         )
         search_results_filtered = self.clean_up_search_results(search_results)
+        new_search_results = self.filter_already_existing(search_results_filtered)
+        new_identifications = await self.get_instrument_identifications(
+            new_search_results
+        )
+        return self.report
+
+    async def get_instrument_identifications(
+        self, search_results: list[tsetmc.InstrumentSearchItem]
+    ) -> list[InstrumentIdentification]:
+        """Gets identification from Tsetmc for new instruments"""
+        results: list[InstrumentIdentification] = []
+        async with tsetmc.TsetmcScraper() as scraper:
+            for search_result in search_results:
+                try:
+                    self._logger.info(
+                        "Getting instrument identity for [%s].",
+                        repr(search_result),
+                    )
+                    results.append(
+                        await scraper.get_instrument_identity(
+                            tsetmc_code=search_result.tsetmc_code
+                        )
+                    )
+                except (httpx.RequestError, tsetmc.TsetmcScrapeException):
+                    self.report.warnings.append(
+                        f"Getting instrument identity for [{search_result}] failed.",
+                    )
+        return results
+
+    def filter_already_existing(
+        self, search_results: list[tsetmc.InstrumentSearchItem]
+    ) -> list[tsetmc.InstrumentSearchItem]:
+        """Filters instruments that already exist on the database"""
+        with get_tse_market_session() as session:
+            tsetmc_codes = session.query(InstrumentIdentification).all()
+        new_results = [
+            x
+            for x in search_results
+            if not any(y for y in tsetmc_codes if y.tsetmc_code == x.tsetmc_code)
+        ]
+        self.report.information.append(
+            f"New items ➡️ {len(new_results)}",
+        )
+        return new_results
 
     def clean_up_search_results(
         self, search_results: list[tsetmc.InstrumentSearchItem]
@@ -64,7 +108,12 @@ class _Shift:
             for p in results
             if p.tsetmc_code not in seen and not seen.add(p.tsetmc_code)
         ]
-        distinct_results.sort(key=lambda x: x.index)
+        distinct_results.sort(key=lambda x: x.ticker)
+        self._logger.info("Final filtered search results: %s", repr(distinct_results))
+        self.report.information.append(
+            f"Search results ➡️ {len(distinct_results)}",
+        )
+        return distinct_results
 
     async def search_and_process_tsetmc(
         self, search_by: str
@@ -72,7 +121,11 @@ class _Shift:
         """Search Tsetmc for instruments and processes the results"""
         search_results = await self.search_tsetmc(search_by)
         obsolete_count = len([x for x in search_results if not x.is_active])
-        if len(search_results) >= 40 and obsolete_count == 0:
+        if (
+            self.job_description.do_recursive
+            and len(search_results) >= 40
+            and obsolete_count == 0
+        ):
             new_search_bys = set(
                 [
                     x.ticker[: len(search_by) + 1]
@@ -89,10 +142,12 @@ class _Shift:
         search_results: list[tsetmc.InstrumentSearchItem] = []
         async with tsetmc.TsetmcScraper() as scraper:
             try:
-                self._LOGGER.error("Searching for [%s]", search_by)
+                self._logger.info("Searching for [%s]", search_by)
                 search_results = await scraper.get_instrument_search(
                     search_value=search_by
                 )
             except (httpx.RequestError, tsetmc.TsetmcScrapeException):
-                self._LOGGER.error("Searching for [%s] failed.", search_by)
+                self.report.warnings.append(
+                    f"Searching for [{search_by}] failed.",
+                )
         return search_results

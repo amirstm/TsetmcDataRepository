@@ -15,6 +15,7 @@ from lines.tse_client_instruments_updater import TseClientInstrumentsUpdater
 from lines.tsetmc_instrument_identity_catcher import TsetmcInstrumentIdentityCatcher
 from lines.tsetmc_daily_historical_catcher import TsetmcDailyHistoricalCatcher
 from lines.tsetmc_index_historical_catcher import TsetmcIndexHistoricalCatcher
+from lines.tsetmc_instrument_searcher import TsetmcInstrumentSearcher
 
 load_dotenv()
 
@@ -63,6 +64,7 @@ async def main():
         LineManager(worker=TsetmcInstrumentIdentityCatcher()),
         LineManager(worker=TsetmcDailyHistoricalCatcher()),
         LineManager(worker=TsetmcIndexHistoricalCatcher()),
+        LineManager(worker=TsetmcInstrumentSearcher()),
     )
     await president.start_operation_async()
 
