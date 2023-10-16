@@ -14,7 +14,9 @@ if __name__ == "__main__":
     # print(res[0])
     # with sessionmaker(bind=engine)() as session:
     with get_tse_market_session() as session:
-        res = session.query(InstrumentType).where(
-            InstrumentType.instrument_type_id == 12345
-        ).first()
+        res = (
+            session.query(InstrumentType)
+            .where(InstrumentType.instrument_type_id == 12345)
+            .first()
+        )
         print(res.instrument_identifications)
