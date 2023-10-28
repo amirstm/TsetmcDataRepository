@@ -109,11 +109,11 @@ class _Shift:
                 ]
                 new_batch_data.extend(new_data)
                 if len(new_batch_data) > self._update_chunk_len:
-                    client_type_data_inserted += self.insert_trade_batch_in_database(
+                    client_type_data_inserted += self.insert_data_batch_in_database(
                         new_batch_data
                     )
             if new_batch_data:
-                client_type_data_inserted += self.insert_trade_batch_in_database(
+                client_type_data_inserted += self.insert_data_batch_in_database(
                     new_batch_data
                 )
         self.report.information.extend(
@@ -160,11 +160,11 @@ class _Shift:
                 ]
                 new_batch_data.extend(new_data)
                 if len(new_batch_data) > self._update_chunk_len:
-                    trade_data_inserted += self.insert_trade_batch_in_database(
+                    trade_data_inserted += self.insert_data_batch_in_database(
                         new_batch_data
                     )
             if new_batch_data:
-                trade_data_inserted += self.insert_trade_batch_in_database(
+                trade_data_inserted += self.insert_data_batch_in_database(
                     new_batch_data
                 )
         self.report.information.extend(
@@ -216,14 +216,14 @@ class _Shift:
             trade_volume=tsetmc_data.trade_volume,
         )
 
-    def insert_trade_batch_in_database(
+    def insert_data_batch_in_database(
         self, new_batch_data: list[DailyTradeCandle]
     ) -> int:
         """Inserts a batch of trade data into database"""
         with get_tse_market_session() as session:
             session.add_all(new_batch_data)
             self._logger.info(
-                "Inserting %d DailyTradeCandle rows into database.", len(new_batch_data)
+                "Inserting %d data rows into database.", len(new_batch_data)
             )
             row_num = len(new_batch_data)
             session.commit()
