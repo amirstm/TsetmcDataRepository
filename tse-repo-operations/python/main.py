@@ -2,7 +2,7 @@
 import os
 import logging
 import asyncio
-from datetime import datetime, timedelta
+from datetime import time
 from logging.handlers import TimedRotatingFileHandler
 from dotenv import load_dotenv
 import telegram.ext
@@ -60,10 +60,31 @@ async def main():
         )
     )
     president.add_line(
-        LineManager(worker=TseClientInstrumentsUpdater()),
+        LineManager(
+            worker=TseClientInstrumentsUpdater(),
+            cron_job_orders=[
+                CronJobOrder(
+                    daily_run_time=time(hour=15, minute=3, second=0), off_days=[4]
+                )
+            ],
+        ),
         LineManager(worker=TsetmcInstrumentIdentityCatcher()),
-        LineManager(worker=TsetmcDailyHistoricalCatcher()),
-        LineManager(worker=TsetmcIndexHistoricalCatcher()),
+        LineManager(
+            worker=TsetmcDailyHistoricalCatcher(),
+            cron_job_orders=[
+                CronJobOrder(
+                    daily_run_time=time(hour=8, minute=15, second=0), off_days=[4]
+                )
+            ],
+        ),
+        LineManager(
+            worker=TsetmcIndexHistoricalCatcher(),
+            cron_job_orders=[
+                CronJobOrder(
+                    daily_run_time=time(hour=8, minute=10, second=0), off_days=[4]
+                )
+            ],
+        ),
         LineManager(worker=TsetmcInstrumentSearcher()),
     )
     await president.start_operation_async()
