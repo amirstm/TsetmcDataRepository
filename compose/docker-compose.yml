@@ -18,7 +18,9 @@ services:
       - master_data:/var/lib/mysql
       - master_data_cnf:/etc/mysql/conf.d
       - ./master/setup.sql:/docker-entrypoint-initdb.d/setup.sql
-    env_file: 
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
       - ./master/.env.mysql
     environment:
       - MYSQL_ROOT_PASSWORD_FILE=/run/secrets/mysql_root_password
@@ -39,6 +41,8 @@ services:
     restart: unless-stopped
     volumes:
       - ${BACKUPS_FOLDER}:/backup
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     env_file: 
       - ./master/.env.mysql
     environment:
@@ -74,17 +78,19 @@ services:
     depends_on:
       - sshproxy
     restart: unless-stopped
+    # env_file:
+    #   - ./master/.env.mysql
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
       - PROXY_URL=socks5://sshproxy:${PROXY_PORT}
       - MYSQL_HOST=mysql-master
-      - MYSQL_PORT=3306
-      - MYSQL_DB=tse_market
-      - MYSQL_USER=master
       - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
     secrets:
       - mysql_password
+    volumes:
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     networks:
       app_network:
         aliases:
