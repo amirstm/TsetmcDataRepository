@@ -73,7 +73,11 @@ services:
           - sshproxy
 
   operations:
+    build:
+      dockerfile: ../tse-repo-operations/Dockerfile
+      context : ../tse-repo-operations
     image: amirstm/tse-repo-operations:latest
+    pull_policy: never
     container_name: operations
     depends_on:
       - sshproxy
