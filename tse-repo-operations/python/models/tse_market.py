@@ -256,12 +256,5 @@ def get_tse_market_session():
     mysql_password = os.getenv("MYSQL_PASSWORD")
     mysql_connector = f"mysql+mysqlconnector://{mysql_user}:{mysql_password}@\
 {mysql_host}:{mysql_port}/{mysql_db}"
-    # mysql_connector = "mysql+mysqlconnector://{}:{}@{}:{}/{}".format(
-    #     mysql_user,
-    #     mysql_password,
-    #     mysql_host,
-    #     mysql_port,
-    #     mysql_db
-    # )
     engine = sqlalchemy.create_engine(mysql_connector, echo=False)
     return Session(engine)

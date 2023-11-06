@@ -68,20 +68,26 @@ services:
         aliases:
           - sshproxy
 
-  # operations:
-  #   image: amirstm/tse-repo-operations
-  #   container_name: operations
-  #   depends_on:
-  #     - sshproxy
-  #   restart: unless-stopped
-  #   environment:
-  #     - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
-  #     - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
-  #     - PROXY_URL=socks5://sshproxy:${PROXY_PORT}
-  #   networks:
-  #     app_network:
-  #       aliases:
-  #         - operations
+  operations:
+    image: amirstm/tse-repo-operations:latest
+    container_name: operations
+    depends_on:
+      - sshproxy
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - PROXY_URL=socks5://sshproxy:${PROXY_PORT}
+      - MYSQL_HOST=mysql-master
+      - MYSQL_PORT=3306
+      - MYSQL_DB=tse_market
+      - MYSQL_USER=master
+    secrets:
+      - mysql_password
+    networks:
+      app_network:
+        aliases:
+          - operations
 
 volumes:
   master_data:
