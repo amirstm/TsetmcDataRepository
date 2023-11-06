@@ -256,7 +256,7 @@ def get_tse_market_session():
     mysql_password = os.getenv("MYSQL_PASSWORD")
     if not mysql_password:
         mysql_password_file = os.getenv("MYSQL_PASSWORD_FILE")
-        with open(mysql_password_file, "r") as file:
+        with open(mysql_password_file, "r", encoding="utf-8") as file:
             mysql_password = file.read().rstrip()
     url_object = URL.create(
         "mysql+mysqlconnector",
