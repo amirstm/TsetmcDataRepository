@@ -68,9 +68,7 @@ services:
     volumes:
       - sshproxy_config:/python/config
     networks:
-      app_network:
-        aliases:
-          - sshproxy
+      - app_network
 
   operations:
     build:

@@ -51,6 +51,7 @@ async def main():
     application = (
         telegram.ext.ApplicationBuilder()
         .proxy_url(PROXY_URL)
+        .get_updates_proxy_url(PROXY_URL)
         .token(TELEGRAM_BOT_TOKEN)
         .build()
     )
