@@ -53,16 +53,6 @@ class TseClientInstrumentsUpdater(line.Worker):
         report: line.JobReport,
     ):
         """Updates the database with the instruments and the indices"""
-        import os
-
-        mysql_host = os.getenv("MYSQL_HOST")
-        mysql_db = os.getenv("MYSQL_DB")
-        mysql_user = os.getenv("MYSQL_USER")
-        mysql_port = os.getenv("MYSQL_PORT")
-        mysql_password = os.getenv("MYSQL_PASSWORD")
-        mysql_connector = f"mysql+mysqlconnector://{mysql_user}:{mysql_password}@\
-{mysql_host}:{mysql_port}/{mysql_db}"
-        self._LOGGER.info("Connector : " + mysql_connector)
         with get_tse_market_session() as session:
             instrument_types = session.query(InstrumentType).all()
             instruments_known_type = self.__filter_identifications_by_type(

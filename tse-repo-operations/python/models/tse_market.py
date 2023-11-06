@@ -6,7 +6,7 @@ from typing import Optional
 from dataclasses import dataclass
 from dotenv import load_dotenv
 import sqlalchemy
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, URL
 from sqlalchemy.types import NCHAR, NVARCHAR, BIGINT
 from sqlalchemy.orm import relationship, mapped_column, Mapped, DeclarativeBase, Session
 
@@ -254,7 +254,17 @@ def get_tse_market_session():
     mysql_user = os.getenv("MYSQL_USER")
     mysql_port = os.getenv("MYSQL_PORT")
     mysql_password = os.getenv("MYSQL_PASSWORD")
-    mysql_connector = f"mysql+mysqlconnector://{mysql_user}:{mysql_password}@\
-{mysql_host}:{mysql_port}/{mysql_db}"
-    engine = sqlalchemy.create_engine(mysql_connector, echo=False)
+    if not mysql_password:
+        mysql_password_file = os.getenv("MYSQL_PASSWORD_FILE")
+        with open(mysql_password_file, "r") as file:
+            mysql_password = file.read().rstrip()
+    url_object = URL.create(
+        "mysql+mysqlconnector",
+        username=mysql_user,
+        password=mysql_password,
+        host=mysql_host,
+        port=mysql_port,
+        database=mysql_db,
+    )
+    engine = sqlalchemy.create_engine(url_object, echo=False)
     return Session(engine)

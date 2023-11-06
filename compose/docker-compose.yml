@@ -82,10 +82,14 @@ services:
       - MYSQL_PORT=3306
       - MYSQL_DB=tse_market
       - MYSQL_USER=master
+      - MYSQL_PASSWORD_FILE=/run/secrets/mysql_password
     secrets:
       - mysql_password
     networks:
       app_network:
+        aliases:
+          - operations
+      db_network:
         aliases:
           - operations
 
