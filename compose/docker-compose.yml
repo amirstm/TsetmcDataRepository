@@ -78,8 +78,8 @@ services:
     depends_on:
       - sshproxy
     restart: unless-stopped
-    # env_file:
-    #   - ./master/.env.mysql
+    env_file:
+      - ./master/.env.mysql
     environment:
       - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
       - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
@@ -92,12 +92,8 @@ services:
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     networks:
-      app_network:
-        aliases:
-          - operations
-      db_network:
-        aliases:
-          - operations
+      - app_network
+      - db_network
 
 volumes:
   master_data:
@@ -106,7 +102,7 @@ volumes:
 
 networks:
   db_network:
-    internal: false # change this to true later for deployment
+    internal: true # change this to true later for deployment
   app_network:
     internal: false
   
