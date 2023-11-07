@@ -104,7 +104,7 @@ volumes:
 
 networks:
   db_network:
-    internal: true # change this to true later for deployment
+    internal: true
   app_network:
     internal: false
   
