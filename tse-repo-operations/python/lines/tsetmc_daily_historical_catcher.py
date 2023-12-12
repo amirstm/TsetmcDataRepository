@@ -23,6 +23,7 @@ class JobDescription(line.JobDescription):
     get_trade_data: bool = None
     get_client_type_data: bool = None
     specific_instrument_identifier: str = None
+    specific_instrument_type: int = None
 
 
 class TsetmcDailyHistoricalCatcher(line.Worker):
@@ -41,6 +42,7 @@ class TsetmcDailyHistoricalCatcher(line.Worker):
             get_trade_data=True,
             get_client_type_data=True,
             specific_instrument_identifier=None,
+            specific_instrument_type=None,
         )
 
 
@@ -57,7 +59,8 @@ class _Shift:
     async def perform_task(self) -> line.JobReport:
         """Performs the task using the provided job description"""
         instruments = self.get_instruments(
-            search_by=self.job_description.specific_instrument_identifier
+            search_by_instrument=self.job_description.specific_instrument_identifier,
+            search_by_type=self.job_description.specific_instrument_type,
         )
         self.report.information.append(
             f"Instruments count ➡️ {len(instruments)}",
@@ -277,18 +280,55 @@ class _Shift:
         return max_record_dates
 
     @classmethod
-    def get_instruments(cls, search_by: str) -> list[InstrumentIdentification]:
+    def get_instruments(
+        cls, search_by_instrument: str, search_by_type: int
+    ) -> list[InstrumentIdentification]:
         """List instruments according to the search_by identifier"""
         with get_tse_market_session() as session:
-            if search_by:
+            if search_by_instrument:
                 return (
                     session.query(InstrumentIdentification)
                     .filter(
                         sqlalchemy.or_(
-                            InstrumentIdentification.isin == search_by,
-                            InstrumentIdentification.ticker.contains(search_by),
+                            InstrumentIdentification.isin == search_by_instrument,
+                            InstrumentIdentification.ticker.contains(
+                                search_by_instrument
+                            ),
                         )
                     )
                     .all()
                 )
-            return session.query(InstrumentIdentification).all()
+            if search_by_type:
+                return (
+                    session.query(InstrumentIdentification)
+                    .filter(
+                        sqlalchemy.or_(
+                            InstrumentIdentification.instrument_type_id
+                            == search_by_type,
+                        )
+                    )
+                    .all()
+                )
+            all_instruments = session.query(InstrumentIdentification).all()
+            return [
+                instrument
+                for instrument in all_instruments
+                if instrument.instrument_type_id
+                in [
+                    68,
+                    69,
+                    206,
+                    263,
+                    300,
+                    303,
+                    304,
+                    305,
+                    309,
+                    310,
+                    313,
+                    400,
+                    401,
+                    403,
+                    404,
+                ]
+            ]
