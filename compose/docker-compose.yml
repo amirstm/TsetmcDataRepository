@@ -6,7 +6,7 @@ secrets:
     file: ./secrets/mysql_root_password
   mysql_password:
     file: ./secrets/mysql_password
-    
+
 services:
   mysql-master:
     image: mysql:8.0.34
@@ -43,7 +43,7 @@ services:
       - ${BACKUPS_FOLDER}:/backup
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    env_file: 
+    env_file:
       - ./master/.env.mysql
     environment:
       - MYSQL_PASS_FILE=/run/secrets/mysql_password
@@ -55,7 +55,7 @@ services:
     secrets:
       - mysql_password
     networks:
-      db_network:
+      - db_network
 
   # Before running this docker compose you should build the needed volume for sshproxy
   # docker container run --name ssha --rm -it -v tse_repo_sshproxy_config:/python/config  amirstm/sshproxy_admin
@@ -104,7 +104,7 @@ volumes:
 
 networks:
   db_network:
-    internal: true
+    internal: false
   app_network:
     internal: false
-  
+
