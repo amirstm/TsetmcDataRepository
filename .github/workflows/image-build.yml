@@ -28,10 +28,10 @@ jobs:
     - name: Analysing the code with pylint
       run: |
         pylint $(git ls-files '*.py')
-    - name: CD for Build
-      run: cd ./tse-repo-operations/python/
     - name: Build package
-      run: python setup.py sdist bdist_wheel
+      run: |
+        cd ./tse-repo-operations/python/
+        python setup.py sdist bdist_wheel
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
