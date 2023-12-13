@@ -4,5 +4,7 @@ pylint==3.0.0
 python-dotenv==1.0.0
 SQLAlchemy==2.0.21
 mysql-connector-python==8.1.0
+setuptools==68.2.2
+wheel==0.41.2
 telegram-task
 tse-utils
