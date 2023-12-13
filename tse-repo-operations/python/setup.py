@@ -3,7 +3,7 @@ import setuptools
 
 setuptools.setup(
     name="tse_utils_db",
-    version="1.1.9",
+    version="1.1.10",
     author="Arka Equities & Securities",
     author_email="info@arkaequities.com",
     description="Database for Tehran Stock Exchange (TSE).",

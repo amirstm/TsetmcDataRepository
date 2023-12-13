@@ -8,7 +8,7 @@ from datetime import date
 from telegram_task import line
 from tse_utils.tse_client import TseClientInstrumentIdentitification, TseClientScraper
 from utils.persian_arabic import arabic_to_persian
-from models.tse_market import (
+from tse_utils_db.tse_market import (
     get_tse_market_session,
     InstrumentType,
     InstrumentIdentification,

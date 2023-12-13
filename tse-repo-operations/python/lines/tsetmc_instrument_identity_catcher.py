@@ -8,7 +8,7 @@ import httpx
 from sqlalchemy.orm import Session
 from telegram_task import line
 from tse_utils import tsetmc
-from models.tse_market import (
+from tse_utils_db.tse_market import (
     get_tse_market_session,
     InstrumentIdentification,
     IndustrySector,
