@@ -30,7 +30,7 @@ jobs:
         pylint $(git ls-files '*.py')
     - name: Build package
       run: |
-        cd ./tse-repo-operations/python/
+        cd tse-repo-operations/python/
         python setup.py sdist bdist_wheel
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@release/v1
@@ -38,6 +38,7 @@ jobs:
         user: __token__
         password: ${{ secrets.PYPI_API_TOKEN }}
         skip-existing: true
+        packages-dir: tse-repo-operations/python/
     
   build-docker-image:
     name: Build Image
