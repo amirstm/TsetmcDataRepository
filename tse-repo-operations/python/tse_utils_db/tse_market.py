@@ -158,6 +158,10 @@ class DailyTradeCandle(Base):
 
     instrument_identification: Mapped[InstrumentIdentification] = relationship()
 
+    def __repr__(self) -> str:
+        return f"DailyTradeCandle(isin={self.isin}, record_date={self.record_date}, \
+close_price={self.close_price})"
+
 
 @dataclass
 class DailyClientType(Base):
@@ -246,7 +250,7 @@ class DailyIndexValue(Base):
     instrument_identification: Mapped[InstrumentIdentification] = relationship()
 
 
-def get_tse_market_session():
+def get_tse_market_session() -> Session:
     """Get a Session object for working with the tse_market database"""
     load_dotenv()
     mysql_host = os.getenv("MYSQL_HOST")
